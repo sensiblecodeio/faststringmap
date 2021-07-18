@@ -1,0 +1,67 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    name: CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log
+        env:
+          CI_EVENT_ACTION: ${{ github.event.action }}
+          CI_PR_TITLE: ${{ github.event.pull_request.title }}
+          CI_PR_PREV_TITLE: ${{ github.event.changes.title.from }}
+        run: |
+          echo github.event.action=$CI_EVENT_ACTION
+          echo github.event.pull_request.title=$CI_PR_TITLE
+          echo github.event.changes.title.from=$CI_PR_PREV_TITLE
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '~1.16.6'
+        id: go
+
+      - name: Install utilities
+        run: |
+          go install golang.org/x/lint/golint@latest
+          go install golang.org/x/tools/cmd/goimports@latest
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          # display Go environment for reference
+          go env
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Get dependencies
+        run: |
+          go mod tidy
+          /usr/bin/git diff --exit-code
+
+      - name: Build
+        run: |
+          go build -v ./...
+
+      - name: Check
+        run: |
+          go vet ./...
+          golint ./...
+          staticcheck ./...
+          goimports -w .
+          /usr/bin/git diff --exit-code
+
+      - name: Test
+        run: |
+          go test -v ./...

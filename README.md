@@ -37,7 +37,9 @@ use of the `unsafe` package.
 
 ## Benchmarks
 
-Example benchmarks from my laptop:
+Below are example benchmarks from my laptop which are for looking up every element
+in a map of size 1000. So approximate times are 25ns per lookup for the Go native map
+and 5ns per lookup for the ``faststringmap``.
 ```
 cpu: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz
 BenchmarkUint32Store

@@ -52,7 +52,7 @@ func NewUint32Store(src Uint32Source) Uint32Store {
 // more efficient than continually using append.
 func uint32Build(keys []string, src Uint32Source) []byteValue {
 	b := uint32Builder{
-		all: [][]byteValue{make([]byteValue, 1, 256)},
+		all: [][]byteValue{make([]byteValue, 1, firstBufSize(len(keys)))},
 		src: src,
 		len: 1,
 	}
@@ -94,6 +94,16 @@ func (b *uint32Builder) makeByteValue(bv *byteValue, a []string, byteIndex int) 
 	}
 }
 
+const maxBuildBufSize = 1 << 20
+
+func firstBufSize(mapSize int) int {
+	size := 1 << 4
+	for size < mapSize && size < maxBuildBufSize {
+		size <<= 1
+	}
+	return size
+}
+
 // alloc will grab space in the current block if available or allocate a new one if not
 func (b *uint32Builder) alloc(nByteValues byte) []byteValue {
 	n := int(nByteValues)
@@ -105,7 +115,7 @@ func (b *uint32Builder) alloc(nByteValues byte) []byteValue {
 		return (*cur)[curLen:]
 	}
 	newCap := curCap
-	if newCap < 1<<20 {
+	if newCap < maxBuildBufSize {
 		newCap *= 2
 	}
 	a := make([]byteValue, n, newCap)

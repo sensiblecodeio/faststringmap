@@ -18,6 +18,11 @@ func TestFastStringToUint32Empty(t *testing.T) {
 	checkWithMapSlice(t, ms)
 }
 
+func TestFastStringToUint32BigSpan(t *testing.T) {
+	ms := mapSliceN(map[string]uint32{"a!": 1, "a~": 2}, 2)
+	checkWithMapSlice(t, ms)
+}
+
 func TestFastStringToUint32(t *testing.T) {
 	const nStrs = 8192
 	m := randomSmallStrings(nStrs, 8)

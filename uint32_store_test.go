@@ -14,22 +14,22 @@ import (
 )
 
 func TestFastStringToUint32Empty(t *testing.T) {
-	ms := mapSliceN(nil, 0)
-	fm := faststringmap.NewUint32Store(ms)
-	if keys := ms.AppendKeys(nil); len(keys) != 0 {
-		t.Errorf("keys should be empty, got %#v", keys)
-	}
-	for _, k := range []string{"", "a", "foo", "ß"} {
-		if actV, ok := fm.LookupString(k); ok {
-			t.Errorf("%q present when not expected, got %d", k, actV)
-		}
-	}
+	ms := mapSliceN(map[string]uint32{"": 1, "a": 2, "foo": 3, "ß": 4}, 0)
+	checkWithMapSlice(t, ms)
+}
+
+func TestFastStringToUint32BigSpan(t *testing.T) {
+	ms := mapSliceN(map[string]uint32{"a!": 1, "a~": 2}, 2)
+	checkWithMapSlice(t, ms)
 }
 
 func TestFastStringToUint32(t *testing.T) {
 	const nStrs = 8192
 	m := randomSmallStrings(nStrs, 8)
-	ms := mapSliceN(m, len(m)/2)
+	checkWithMapSlice(t, mapSliceN(m, len(m)/2))
+}
+
+func checkWithMapSlice(t *testing.T, ms mapSlice) {
 	fm := faststringmap.NewUint32Store(ms)
 
 	for _, k := range ms.in {

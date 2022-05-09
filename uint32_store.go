@@ -114,9 +114,12 @@ func (b *uint32Builder) alloc(nByteValues byte) []byteValue {
 		*cur = (*cur)[: curLen+n : curCap]
 		return (*cur)[curLen:]
 	}
-	newCap := curCap
-	if newCap < maxBuildBufSize {
+	newCap := curCap * 2
+	for newCap < n {
 		newCap *= 2
+	}
+	if newCap > maxBuildBufSize {
+		newCap = maxBuildBufSize
 	}
 	a := make([]byteValue, n, newCap)
 	b.all = append(b.all, a)

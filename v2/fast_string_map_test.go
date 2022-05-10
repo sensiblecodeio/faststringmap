@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sensiblecodeio/faststringmap"
+	"github.com/sensiblecodeio/faststringmap/v2"
 )
 
 func TestFastStringToUint32Empty(t *testing.T) {
@@ -30,7 +30,8 @@ func TestFastStringToUint32(t *testing.T) {
 }
 
 func checkWithMapSlice(t *testing.T, ms mapSlice) {
-	fm := faststringmap.NewUint32Store(ms)
+	m := faststringmap.NewMap[string, uint32](ms)
+	mf := faststringmap.NewMapFaster(m)
 
 	for _, k := range ms.in {
 		check := func(actV uint32, ok bool) {
@@ -40,8 +41,10 @@ func checkWithMapSlice(t *testing.T, ms mapSlice) {
 				t.Errorf("got %d want %d for %q", actV, ms.m[k], k)
 			}
 		}
-		check(fm.LookupString(k))
-		check(fm.LookupBytes([]byte(k)))
+		check(m.LookupString(k))
+		check(mf.LookupString(k))
+		check(m.LookupBytes([]byte(k)))
+		check(mf.LookupBytes([]byte(k)))
 	}
 
 	for _, k := range ms.out {
@@ -50,8 +53,10 @@ func checkWithMapSlice(t *testing.T, ms mapSlice) {
 				t.Errorf("%q present when not expected, got %d", k, actV)
 			}
 		}
-		check(fm.LookupString(k))
-		check(fm.LookupBytes([]byte(k)))
+		check(m.LookupString(k))
+		check(mf.LookupString(k))
+		check(m.LookupBytes([]byte(k)))
+		check(mf.LookupBytes([]byte(k)))
 	}
 }
 
@@ -121,7 +126,7 @@ const nStrsBench = 1000
 
 func BenchmarkUint32Store(b *testing.B) {
 	m := typicalCodeStrings(nStrsBench)
-	fm := faststringmap.NewUint32Store(m)
+	fm := faststringmap.NewMap[string, uint32](m)
 	b.ResetTimer()
 	for bi := 0; bi < b.N; bi++ {
 		for si, n := uint32(0), uint32(len(m.in)); si < n; si++ {

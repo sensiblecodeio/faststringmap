@@ -1,10 +1,5 @@
 # faststringmap
 
-## v2 : Latest for Go 1.18 onwards
-**v2** is the latest which uses generics and runs on Go 1.18. See [v2/README.md](v2/README.md) for details.
-
-## v1 : for Go 1.17 and earlier
-
 `faststringmap` is a fast read-only string keyed map for Go (golang).
 For our use case it is approximately 5 times faster than using Go's
 built-in map type with a string key. It also has the following advantages:
@@ -13,19 +8,35 @@ built-in map type with a string key. It also has the following advantages:
 * minimal impact on GC due to lack of pointers in the data structure
 * data structure can be trivially serialized to disk or network
 
-The code provided implements a map from string to `uint32` which fits our
-use case, but you can easily substitute other value types.
+faststringmap v2 is built using Go generics for Go 1.18 onwards. 
 
-`faststringmap` is a variant of a data structure called a [Trie](https://en.wikipedia.org/wiki/Trie).
+`faststringmap` is a variant of a data structure called a
+[Trie](https://en.wikipedia.org/wiki/Trie).
 At each level we use a slice to hold the next possible byte values.
 This slice is of length one plus the difference between the lowest and highest
 possible next bytes of strings in the map. Not all the entries in the slice are
 valid next bytes. `faststringmap` is thus more space efficient for keys using a
 small set of nearby runes, for example those using a lot of digits.
 
+There are two variants provided:
+
+* `Map` is a version using a single slice and indexes which can be directly
+  serialized (e.g. to a file). It contains no embedded pointers so has minimal
+  impact on GC.
+
+* `MapFaster` has improved performance by using a slice for the `next` fields.
+  This avoids a bounds check when looking up the entry for a byte. However, it
+  comes at the cost of easy serialization and introduces a lot of pointers which
+  will have impact on GC. It is not possible to directly construct the slice version
+  in the same way so that the whole store is one block of memory. So this code provides 
+  a function to create it from `Map`. An alternative construction might create distinct
+  slice objects at each level.
+
 ## Example
 
-Example usage can be found in [``uint32_store_example_test.go``](uint32_store_example_test.go).
+Example usage can be found in the tests and also
+[`fast_string_map_example_test.go`](fast_string_map_example_test.go)
+which shows a populated data structure to aid understanding. 
 
 ## Motivation
 
@@ -52,8 +63,3 @@ BenchmarkUint32Store-8        	  218463	      4959 ns/op
 BenchmarkGoStringToUint32
 BenchmarkGoStringToUint32-8   	   49279	     24483 ns/op
 ```
-
-## Improvements
-
-[v2](v2/README.md) features a version which has improved performance by using a slice for
-the `next` fields. It is also built using generics so you can easily use any value type.

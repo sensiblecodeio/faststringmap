@@ -1,4 +1,4 @@
-// Copyright 2021 The Sensible Code Company Ltd
+// Copyright 2022 The Sensible Code Company Ltd
 // Author: Duncan Harris
 
 package faststringmap

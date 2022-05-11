@@ -8,17 +8,17 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/sensiblecodeio/faststringmap"
+	"github.com/sensiblecodeio/faststringmap/v2"
 )
 
 func Example() {
-	m := exampleSource{
+	m := faststringmap.MapSource[string, int]{
 		"key1": 42,
 		"key2": 27644437,
 		"l":    2,
 	}
 
-	fm := faststringmap.NewUint32Store(m)
+	fm := faststringmap.NewMap[string, int](m)
 
 	// add an entry that is not in the fast map
 	m["m"] = 4
@@ -41,6 +41,7 @@ func Example() {
 	dump := fmt.Sprintf("%+v", fm)
 	dump = strings.ReplaceAll(dump, "}", "}\n")
 	dump = strings.ReplaceAll(dump, "[", "[\n ")
+	dump = strings.ReplaceAll(dump, " ", "\t")
 	fmt.Println(dump)
 
 	// Output:
@@ -51,25 +52,12 @@ func Example() {
 	// "m": 0, false
 	//
 	// {store:[
-	//  {nextLo:1 nextLen:2 nextOffset:107 valid:false value:0}
-	//  {nextLo:3 nextLen:1 nextOffset:101 valid:false value:0}
-	//  {nextLo:0 nextLen:0 nextOffset:0 valid:true value:2}
-	//  {nextLo:4 nextLen:1 nextOffset:121 valid:false value:0}
-	//  {nextLo:5 nextLen:2 nextOffset:49 valid:false value:0}
-	//  {nextLo:0 nextLen:0 nextOffset:0 valid:true value:42}
-	//  {nextLo:0 nextLen:0 nextOffset:0 valid:true value:27644437}
+	// 	{nextLo:1	nextLen:2	nextOffset:107	valid:false	value:0}
+	// 	{nextLo:3	nextLen:1	nextOffset:101	valid:false	value:0}
+	// 	{nextLo:0	nextLen:0	nextOffset:0	valid:true	value:2}
+	// 	{nextLo:4	nextLen:1	nextOffset:121	valid:false	value:0}
+	// 	{nextLo:5	nextLen:2	nextOffset:49	valid:false	value:0}
+	// 	{nextLo:0	nextLen:0	nextOffset:0	valid:true	value:42}
+	// 	{nextLo:0	nextLen:0	nextOffset:0	valid:true	value:27644437}
 	// ]}
-}
-
-type exampleSource map[string]uint32
-
-func (s exampleSource) AppendKeys(a []string) []string {
-	for k := range s {
-		a = append(a, k)
-	}
-	return a
-}
-
-func (s exampleSource) Get(k string) uint32 {
-	return s[k]
 }
